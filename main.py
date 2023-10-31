@@ -262,7 +262,7 @@ async def recomendacion_juego(product_id: int):
             recommended_games = steamGames.loc[similar_games_indices[1:num_recommendations + 1]]
 
             # Devuelve la lista de juegos recomendados
-            return recommended_games[['app_name', 'tags', 'genres']].to_dict(orient='records')
+            return recommended_games[['app_name']].to_dict(orient='records')
 
         return {"message": "No se encontraron juegos similares."}
 
