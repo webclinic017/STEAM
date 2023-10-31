@@ -63,42 +63,39 @@ async def PlayTimeGenre(genero: str):
 @app.get('/UserForGenre/{genero}')
 async def UserForGenre(genero:str):
     try:
-        # Cargar los DataFrames utilizando Dask
-        df_games = dd.read_csv('Data/steamGames_df.csv')
-        df_item = dd.read_parquet('Data/df_desanidadaItem.parquet')
-        df_reviews = dd.read_csv('Data/df_desanidadaReviews.csv')
+        # Cargar los DataFrames
+        df_games = pd.read_csv('Data/steamGames_df.csv')
+        df_reviews = pd.read_csv('Data/df_desanidadaReviews.csv')
 
         # Filtrar juegos por género
-        juegos_genero = df_games[df_games['genres'].str.contains(genero, case=False, na=False)]
+        condition = df_games['genres'].apply(lambda x: genero in x)
+        juegos_genero = df_games[condition]
 
-        # Realizar la fusión de DataFrames
-        df_merged = dd.merge(df_reviews, df_item, on='item_id')
-        df_merged = dd.merge(df_merged, juegos_genero, on='item_id')
+        # Unir DataFrames en función de 'item_id'
+        df_merged = df_reviews.merge(juegos_genero, on='item_id')
 
-        # Dividir los datos en particiones más pequeñas
-        df_merged = df_merged.repartition(npartitions=4)  # Ajusta el número de particiones según tus necesidades
+        # Convertir 'posted' a tipo int para extraer el año
+        df_merged['posted'] = df_merged['posted'].astype(int)
 
-        # Realizar cálculos con Dask
-        df_merged['Año'] = df_merged['posted']
+        # Calcular horas jugadas por año para cada usuario
         df_merged['playtime_forever'] = df_merged['playtime_forever'] / 60  # Convertir minutos a horas
+        horas_por_año = df_merged.groupby(['user_id', 'posted'])['playtime_forever'].sum().reset_index()
 
-        horas_por_año = df_merged.groupby(['user_id', 'Año'])['playtime_forever'].sum().reset_index()
+        # Encontrar el usuario con más horas jugadas para el género dado
+        if not horas_por_año.empty:
+            usuario_max_horas = horas_por_año.groupby('user_id')['playtime_forever'].sum().idxmax()
+            usuario_max_horas = horas_por_año[horas_por_año['user_id'] == usuario_max_horas]
+        else:
+            usuario_max_horas = None
 
-        usuario_max_horas = horas_por_año.groupby('user_id')['playtime_forever'].sum().idxmax()
-        max_horas = horas_por_año[horas_por_año['user_id'] == usuario_max_horas]
+        # Crear la lista de acumulación de horas jugadas por año
+        acumulacion_horas = horas_por_año.groupby('posted')['playtime_forever'].sum().reset_index()
+        acumulacion_horas = acumulacion_horas.rename(columns={'posted': 'Año', 'playtime_forever': 'Horas'})
 
-        acumulacion_horas = horas_por_año.groupby('Año')['playtime_forever'].sum().reset_index()
-        acumulacion_horas = acumulacion_horas.rename(columns={'playtime_forever': 'Horas'})
-
-        # Calcular los resultados
-        with dask.config.set(scheduler='threads'):  # Usar el scheduler de hilos para cálculos locales
-            usuario_max_horas_result = usuario_max_horas.compute()
-            usuario_max_horas_result = max_horas.compute()
-            acumulacion_horas_result = acumulacion_horas.compute()
-
+        # Crear el resultado final en el formato deseado
         resultado = {
-            "Usuario con más horas jugadas para " + genero: usuario_max_horas_result,
-            "Horas jugadas": acumulacion_horas_result.to_dict(orient='records')
+            "Usuario con más horas jugadas para " + genero: usuario_max_horas['user_id'].values[0],
+            "Horas jugadas": acumulacion_horas.to_dict(orient='records')
         }
 
         return resultado
