@@ -221,7 +221,7 @@ async def recomendacion_juego(product_id: int):
     try:
         steamGames = pd.read_csv('Data/steamGames_df.csv')
         # Obtén el juego de referencia
-        target_game = steamGames[steamGames['id'] == product_id]
+        target_game = steamGames[steamGames['item_id'] == product_id]
 
         if target_game.empty:
             return {"message": "No se encontró el juego de referencia."}
@@ -256,7 +256,7 @@ async def recomendacion_juego(product_id: int):
 
             # Recomienda los juegos más similares (puedes ajustar el número de recomendaciones)
             num_recommendations = 5
-            recommended_games = df_steam.loc[similar_games_indices[1:num_recommendations + 1]]
+            recommended_games = steamGames.loc[similar_games_indices[1:num_recommendations + 1]]
 
             # Devuelve la lista de juegos recomendados
             return recommended_games[['app_name', 'tags', 'genres']].to_dict(orient='records')
