@@ -238,17 +238,20 @@ async def recomendacion_juego(product_id: int):
 
         # Procesa los juegos por lotes utilizando chunks
         for chunk in pd.read_csv('Data/steamGames_df.csv', chunksize=chunk_size):
-            # Combina las etiquetas (tags) y géneros de los juegos en una sola cadena de texto
-            chunk_tags_and_genres = ' '.join(chunk['tags'].fillna('').astype(str) + ' ' + chunk['genres'].fillna('').astype(str))
+            # Combina las etiquetas (tags) y géneros de los juegos en una sola cadena de texto para cada juego en el lote
+            chunk_tags_and_genres = chunk['tags'].fillna('').astype(str) + ' ' + chunk['genres'].fillna('').astype(str)
 
-            # Aplica el vectorizador TF-IDF al lote actual de juegos y al juego de referencia
-            tfidf_matrix = tfidf_vectorizer.fit_transform([target_game_tags_and_genres, chunk_tags_and_genres])
+            # Combina el juego de referencia y el lote actual en una lista
+            games_to_compare = [target_game_tags_and_genres] + chunk_tags_and_genres.tolist()
+
+            # Aplica el vectorizador TF-IDF al juego de referencia y al lote actual de juegos
+            tfidf_matrix = tfidf_vectorizer.fit_transform(games_to_compare)
 
             # Calcula la similitud entre el juego de referencia y los juegos del lote actual
             if similarity_scores is None:
                 similarity_scores = cosine_similarity(tfidf_matrix)
             else:
-                similarity_scores = cosine_similarity(tfidf_matrix, X=similarity_scores)
+                similarity_scores = cosine_similarity(tfidf_matrix)
 
         if similarity_scores is not None:
             # Obtiene los índices de los juegos más similares
