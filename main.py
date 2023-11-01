@@ -52,31 +52,35 @@ async def UserForGenre(genero:str):
         df_games = pd.read_csv('Data/steamGames_df.csv')
         df_reviews = pd.read_csv('Data/df_desanidadaReviews.csv')
 
+
         condition = df_games['genres'].apply(lambda x: genero in x)
         juegos_genero = df_games[condition]
 
         df_merged = df_reviews.merge(juegos_genero, on='item_id')
 
-        df_merged['posted'] = df_merged['posted'].astype(int)
+        df_merged['playtime_forever'] = df_merged['playtime_forever'] / 60
 
-        df_merged['playtime_forever'] = df_merged['playtime_forever'] / 60  # Convertir minutos a horas
-        horas_por_año = df_merged.groupby(['user_id', 'posted'])['playtime_forever'].sum().reset_index()
+        df_merged = df_merged[df_merged['posted'] >= 100]
 
-        if not horas_por_año.empty:
-            usuario_max_horas = horas_por_año.groupby('user_id')['playtime_forever'].sum().idxmax()
-            usuario_max_horas = horas_por_año[horas_por_año['user_id'] == usuario_max_horas]
+        df_merged['Año'] = df_merged['posted']
+
+        horas_por_usuario = df_merged.groupby(['user_id', 'Año'])['playtime_forever'].sum().reset_index()
+        if not horas_por_usuario.empty:
+            usuario_max_horas = horas_por_usuario.groupby('user_id')['playtime_forever'].sum().idxmax()
+            usuario_max_horas = horas_por_usuario[horas_por_usuario['user_id'] == usuario_max_horas]
         else:
             usuario_max_horas = None
 
-        acumulacion_horas = horas_por_año.groupby('posted')['playtime_forever'].sum().reset_index()
-        acumulacion_horas = acumulacion_horas.rename(columns={'posted': 'Año', 'playtime_forever': 'Horas'})
+        acumulacion_horas = horas_por_usuario.groupby(['Año'])['playtime_forever'].sum().reset_index()
+        acumulacion_horas = acumulacion_horas.rename(columns={'Año': 'Año', 'playtime_forever': 'Horas'})
 
         resultado = {
-            "Usuario con más horas jugadas para " + genero: usuario_max_horas['user_id'].values[0],
+            "Usuario con más horas jugadas para " + genero: usuario_max_horas.to_dict(orient='records'),
             "Horas jugadas": acumulacion_horas.to_dict(orient='records')
         }
 
         return resultado
+
     except FileNotFoundError:
         raise HTTPException(status_code=500, detail="Error al cargar los archivos de datos")
     except Exception as e:
