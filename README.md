@@ -24,6 +24,6 @@ juegos, horas jugadas por determinados usuarios, año en donde tuvo un gran reci
 Con respecto al sistema de recomendacion nos retornara 5 juegos similares, con respecto al juego que buscamos mediante el id
 
 ## LINKS
- Repositorio de (GITHUB) : 
+ Repositorio de (GITHUB) : https://github.com/Eljeferson/STEAM.git
  Link de Render : https://steam-44wc.onrender.com
  Video : 
