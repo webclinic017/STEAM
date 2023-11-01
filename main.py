@@ -21,6 +21,7 @@ async def PlayTimeGenre(genero: str):
     try:
         steamGames = pd.read_csv('Data/steamGames_df.csv')
         df_desanidadaItem = pd.read_parquet('Data/df_desanidadaItem.parquet')
+        steamGames.drop(columns=['playtime_forever'], inplace=True)
 
         genero_filtrado = steamGames[steamGames['genres'].apply(lambda x: genero in x)]
 
