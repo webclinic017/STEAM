@@ -26,4 +26,4 @@ Con respecto al sistema de recomendacion nos retornara 5 juegos similares, con r
 ## LINKS
  + Repositorio de (GITHUB) : https://github.com/Eljeferson/STEAM.git
  + Link de Render : https://steam-44wc.onrender.com
- + Video : 
+ + Video : https://youtu.be/65e_byehOm8
