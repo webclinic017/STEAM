@@ -27,3 +27,10 @@ Con respecto al sistema de recomendacion nos retornara 5 juegos similares, con r
  + Repositorio de (GITHUB) : https://github.com/Eljeferson/STEAM.git
  + Link de Render : https://steam-44wc.onrender.com
  + Video : https://youtu.be/65e_byehOm8
+ETL and EDA development
+The datasets that were provided were in json formats which had to be unpacked for data extraction; Furthermore, when transforming the data, I had to delete null data and also assign some values to some null data so that there were no problems in the development of the functions. When loading the data frames, one of them was transformed into .parquet files; Likewise, a mapping was carried out between two data frames for memory optimization. On the other hand, the data was explored and in certain graphs the top video games, the sentiment analysis and among others are shown.
+
+
+
+API CONTENT
+The API, which is in Render, contains 5 functions and a recommendation system which were requested, which perform the operation of top games, hours played by certain users, year in which the games had a great reception, among others. Regarding the recommendation system, it will return 5 similar games, with respect to the game we are looking for using the id
